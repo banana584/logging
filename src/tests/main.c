@@ -1,3 +1,4 @@
+#define DEBUG_ENABLED
 #include "../../include/logging.h"
 
 int main() {
@@ -8,6 +9,8 @@ int main() {
     LOG(LEVEL_INFO, "test noargs");
 
     LOG_CALL(INFO, "test %d", 321);
+
+    LOG_CALL(DEBUG, "debug");
 
     return 0;
 }

@@ -43,13 +43,23 @@ extern char* logging_level_names[];
 } while (0)
 
 // Displays a message with level, format and args
+#ifdef DEBUG_ENABLED
 #define LOG(level, fmt, ...) do {                                                                                  \
     char datetime[64];                                                                                             \
     DATETIME_NOW(datetime, 64);                                                                                    \
     printf("%s [%s:%d] [%s]: " fmt "\n", logging_level_names[level], __FILE__, __LINE__, datetime, ##__VA_ARGS__); \
 } while (0)
+#else
+#define LOG(level, fmt, ...) do {   \
+    if (level == LEVEL_DEBUG) break;                                                                                   \
+    char datetime[64];                                                                                             \
+    DATETIME_NOW(datetime, 64);                                                                                    \
+    printf("%s [%s:%d] [%s]: " fmt "\n", logging_level_names[level], __FILE__, __LINE__, datetime, ##__VA_ARGS__); \
+} while (0)
+#endif
 
 // Displays a message from vlist the same way as the LOG macro
+#ifdef DEBUG_ENABLED
 #define LOG_VLIST(level, file, line, fmt, ap) do {                                               \
     char datetime[64];                                                                           \
     DATETIME_NOW(datetime, sizeof(datetime));                                                    \
@@ -57,6 +67,16 @@ extern char* logging_level_names[];
     vsnprintf(user_msg, sizeof(user_msg), fmt, ap);                                              \
     printf("%s [%s:%d] [%s]: %s\n", logging_level_names[level], file, line, datetime, user_msg); \
 } while (0)
+#else
+#define LOG_VLIST(level, file, line, fmt, ap) do {                                                   \
+    if (level == LEVEL_DEBUG) break;                                                                 \
+    char datetime[64];                                                                           \
+    DATETIME_NOW(datetime, sizeof(datetime));                                                    \
+    char user_msg[512];                                                                          \
+    vsnprintf(user_msg, sizeof(user_msg), fmt, ap);                                              \
+    printf("%s [%s:%d] [%s]: %s\n", logging_level_names[level], file, line, datetime, user_msg); \
+} while (0)
+#endif
 
 // Calls a log function
 #define LOG_CALL(fn, fmt, ...) fn(__FILE__, __LINE__, fmt, ##__VA_ARGS__)
