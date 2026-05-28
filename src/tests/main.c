@@ -1,7 +1,11 @@
 #define DEBUG_ENABLED
+#define LOG_FILE "log.txt"
 #include "../../include/logging.h"
 
 int main() {
+    ADD_OUTPUT(OUTPUT_FILE);
+    ADD_OUTPUT(OUTPUT_PRINT);
+
     LOG(LEVEL_INFO, "Args %d", 123);
 
     LOG_CALL(ERROR, "error %d", 1414);

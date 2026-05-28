@@ -5,6 +5,10 @@
 #include <stdarg.h>
 #include <time.h>
 
+#ifndef LOG_FILE
+#define LOG_FILE "log.txt"
+#endif
+
 // Each level able to be logged
 #define LOGGING_LEVELS(X) \
     X(DEBUG, LEVEL_DEBUG) \
@@ -16,7 +20,8 @@
 // Each way of outputting logs
 #define LOGGING_OUTPUTS(X) \
     X(PRINT) \
-    X(FILE)
+    X(FILE) \
+    X(NUM)
 
 // Levels in an enum
 typedef enum LoggingLevels {
@@ -35,6 +40,27 @@ typedef enum LoggingOutputs {
 // Names of levels
 extern char* logging_level_names[];
 
+// Names of outputs
+extern char* logging_output_names[];
+
+// All current outputs
+extern LoggingOutputs outputs[OUTPUT_NUM];
+extern size_t num_outputs;
+
+#define ADD_OUTPUT(output) outputs[num_outputs++] = (output)
+
+#define OUTPUT(fmt, ...) do {                     \
+    FILE* __out_file = fopen(LOG_FILE, "a"); \
+    for (size_t i = 0; i < num_outputs; i++) {    \
+        if (outputs[i] == OUTPUT_PRINT) {         \
+            printf(fmt, ##__VA_ARGS__);           \
+        } else if (outputs[i] == OUTPUT_FILE) {     \
+            fprintf(__out_file, fmt, ##__VA_ARGS__); \
+        }                                         \
+    }                                             \
+    fclose(__out_file); \
+} while (0)
+
 // Gets the current time in a format
 #define DATETIME_NOW(buf, size) do {                       \
     time_t t = time(NULL);                                 \
@@ -47,14 +73,14 @@ extern char* logging_level_names[];
 #define LOG(level, fmt, ...) do {                                                                                  \
     char datetime[64];                                                                                             \
     DATETIME_NOW(datetime, 64);                                                                                    \
-    printf("%s [%s:%d] [%s]: " fmt "\n", logging_level_names[level], __FILE__, __LINE__, datetime, ##__VA_ARGS__); \
+    OUTPUT("%s [%s:%d] [%s]: " fmt "\n", logging_level_names[level], __FILE__, __LINE__, datetime, ##__VA_ARGS__); \
 } while (0)
 #else
 #define LOG(level, fmt, ...) do {   \
     if (level == LEVEL_DEBUG) break;                                                                                   \
     char datetime[64];                                                                                             \
     DATETIME_NOW(datetime, 64);                                                                                    \
-    printf("%s [%s:%d] [%s]: " fmt "\n", logging_level_names[level], __FILE__, __LINE__, datetime, ##__VA_ARGS__); \
+    OUTPUT("%s [%s:%d] [%s]: " fmt "\n", logging_level_names[level], __FILE__, __LINE__, datetime, ##__VA_ARGS__); \
 } while (0)
 #endif
 
@@ -65,7 +91,7 @@ extern char* logging_level_names[];
     DATETIME_NOW(datetime, sizeof(datetime));                                                    \
     char user_msg[512];                                                                          \
     vsnprintf(user_msg, sizeof(user_msg), fmt, ap);                                              \
-    printf("%s [%s:%d] [%s]: %s\n", logging_level_names[level], file, line, datetime, user_msg); \
+    OUTPUT("%s [%s:%d] [%s]: %s\n", logging_level_names[level], file, line, datetime, user_msg); \
 } while (0)
 #else
 #define LOG_VLIST(level, file, line, fmt, ap) do {                                                   \
@@ -74,7 +100,7 @@ extern char* logging_level_names[];
     DATETIME_NOW(datetime, sizeof(datetime));                                                    \
     char user_msg[512];                                                                          \
     vsnprintf(user_msg, sizeof(user_msg), fmt, ap);                                              \
-    printf("%s [%s:%d] [%s]: %s\n", logging_level_names[level], file, line, datetime, user_msg); \
+    OUTPUT("%s [%s:%d] [%s]: %s\n", logging_level_names[level], file, line, datetime, user_msg); \
 } while (0)
 #endif
 

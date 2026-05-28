@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(Logging LANGUAGES C VERSION 1.0.2)
+project(Logging LANGUAGES C VERSION 1.1.0)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
